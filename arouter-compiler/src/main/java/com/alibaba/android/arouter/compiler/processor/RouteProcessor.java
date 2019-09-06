@@ -20,6 +20,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
 
+import org.androidannotations.annotations.EActivity;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +30,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,6 +55,7 @@ import javax.tools.StandardLocation;
 
 import static com.alibaba.android.arouter.compiler.utils.Consts.ACTIVITY;
 import static com.alibaba.android.arouter.compiler.utils.Consts.ANNOTATION_TYPE_AUTOWIRED;
+import static com.alibaba.android.arouter.compiler.utils.Consts.ANNOTATION_TYPE_EACTIVITY;
 import static com.alibaba.android.arouter.compiler.utils.Consts.ANNOTATION_TYPE_ROUTE;
 import static com.alibaba.android.arouter.compiler.utils.Consts.FRAGMENT;
 import static com.alibaba.android.arouter.compiler.utils.Consts.IPROVIDER_GROUP;
@@ -82,7 +85,7 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 @AutoService(Processor.class)
 @SupportedOptions({KEY_MODULE_NAME, KEY_GENERATE_DOC_NAME})
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
-@SupportedAnnotationTypes({ANNOTATION_TYPE_ROUTE, ANNOTATION_TYPE_AUTOWIRED})
+@SupportedAnnotationTypes({ANNOTATION_TYPE_ROUTE, ANNOTATION_TYPE_AUTOWIRED, ANNOTATION_TYPE_EACTIVITY})
 public class RouteProcessor extends AbstractProcessor {
     private Map<String, Set<RouteMeta>> groupMap = new HashMap<>(); // ModuleName and routeMeta.
     private Map<String, String> rootMap = new TreeMap<>();  // Map of root metas, used for generate class file in order.
@@ -167,6 +170,18 @@ public class RouteProcessor extends AbstractProcessor {
         if (CollectionUtils.isNotEmpty(annotations)) {
             Set<? extends Element> routeElements = roundEnv.getElementsAnnotatedWith(Route.class);
             try {
+                Iterator<? extends Element> iterator = routeElements.iterator();
+                while (iterator.hasNext()) {
+                    Element routeElement = iterator.next();
+                    EActivity eActivity = routeElement.getAnnotation(EActivity.class);
+                    if (eActivity != null) {
+                        iterator.remove();
+                    }
+                }
+                if (routeElements.size() <= 0) {
+                    return false;
+                }
+
                 logger.info(">>> Found routes, start... <<<");
                 this.parseRoutes(routeElements);
 
