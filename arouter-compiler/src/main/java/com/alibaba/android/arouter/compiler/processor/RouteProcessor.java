@@ -48,6 +48,7 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -55,7 +56,6 @@ import javax.tools.StandardLocation;
 
 import static com.alibaba.android.arouter.compiler.utils.Consts.ACTIVITY;
 import static com.alibaba.android.arouter.compiler.utils.Consts.ANNOTATION_TYPE_AUTOWIRED;
-import static com.alibaba.android.arouter.compiler.utils.Consts.ANNOTATION_TYPE_EACTIVITY;
 import static com.alibaba.android.arouter.compiler.utils.Consts.ANNOTATION_TYPE_ROUTE;
 import static com.alibaba.android.arouter.compiler.utils.Consts.FRAGMENT;
 import static com.alibaba.android.arouter.compiler.utils.Consts.IPROVIDER_GROUP;
@@ -85,7 +85,7 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 @AutoService(Processor.class)
 @SupportedOptions({KEY_MODULE_NAME, KEY_GENERATE_DOC_NAME})
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
-@SupportedAnnotationTypes({ANNOTATION_TYPE_ROUTE, ANNOTATION_TYPE_AUTOWIRED, ANNOTATION_TYPE_EACTIVITY})
+@SupportedAnnotationTypes({ANNOTATION_TYPE_ROUTE, ANNOTATION_TYPE_AUTOWIRED})
 public class RouteProcessor extends AbstractProcessor {
     private Map<String, Set<RouteMeta>> groupMap = new HashMap<>(); // ModuleName and routeMeta.
     private Map<String, String> rootMap = new TreeMap<>();  // Map of root metas, used for generate class file in order.
@@ -264,7 +264,8 @@ public class RouteProcessor extends AbstractProcessor {
                     // Get all fields annotation by @Autowired
                     Map<String, Integer> paramsType = new HashMap<>();
                     Map<String, Autowired> injectConfig = new HashMap<>();
-                    for (Element field : element.getEnclosedElements()) {
+                    List<? extends Element> fields = getFieldElement(element);
+                    for (Element field : fields) {
                         if (field.getKind().isField() && field.getAnnotation(Autowired.class) != null && !types.isSubtype(field.asType(), iProvider)) {
                             // It must be field, then it has annotation, but it not be provider.
                             Autowired paramConfig = field.getAnnotation(Autowired.class);
@@ -442,6 +443,23 @@ public class RouteProcessor extends AbstractProcessor {
 
             logger.info(">>> Generated root, name is " + rootFileName + " <<<");
         }
+    }
+
+    private List<? extends Element> getFieldElement(Element element){
+      List<? extends Element> fields = null;
+      if (element instanceof TypeElement && element.getSimpleName().toString().endsWith("_")) {
+        TypeMirror parent = ((TypeElement) element).getSuperclass();
+        if (parent instanceof DeclaredType) {
+          Element elt = ((DeclaredType) parent).asElement();
+          if (elt instanceof TypeElement && elt.getAnnotation(EActivity.class) != null) {
+            fields = elt.getEnclosedElements();
+          }
+        }
+      }
+      if (fields == null) {
+        fields = element.getEnclosedElements();
+      }
+      return fields;
     }
 
     /**

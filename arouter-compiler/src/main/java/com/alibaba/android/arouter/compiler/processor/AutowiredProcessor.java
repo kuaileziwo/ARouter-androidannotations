@@ -15,6 +15,7 @@ import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
+import org.androidannotations.annotations.EActivity;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -128,7 +129,7 @@ public class AutowiredProcessor extends AbstractProcessor {
 
                 String qualifiedName = parent.getQualifiedName().toString();
                 String packageName = qualifiedName.substring(0, qualifiedName.lastIndexOf("."));
-                String fileName = parent.getSimpleName() + NAME_OF_AUTOWIRED;
+                String fileName = getFileName(parent);
 
                 logger.info(">>> Start process " + childs.size() + " field in " + parent.getSimpleName() + " ... <<<");
 
@@ -221,6 +222,14 @@ public class AutowiredProcessor extends AbstractProcessor {
             }
 
             logger.info(">>> Autowired processor stop. <<<");
+        }
+    }
+
+    private String getFileName(TypeElement parent){
+        if (parent.getAnnotation(EActivity.class) != null) {
+            return parent.getSimpleName() + "_" + NAME_OF_AUTOWIRED;
+        } else {
+            return parent.getSimpleName() + NAME_OF_AUTOWIRED;
         }
     }
 
