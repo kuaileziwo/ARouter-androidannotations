@@ -4,7 +4,7 @@ def username = "admin"
 def pwd = "admin123"
 
 def nexusRepositoryUrl = "http://localhost:8181/repository/android/"
-def ARTIFACT_ID = 'arouter-compiler'
+def ARTIFACT_ID = 'arouter-compiler-androidannotations'
 def GROUP_ID = 'com.alibaba'
 
 //打包源码
