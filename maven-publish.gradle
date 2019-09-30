@@ -1,0 +1,35 @@
+apply plugin: "maven"
+
+def username = "admin"
+def pwd = "admin123"
+
+def nexusRepositoryUrl = "http://localhost:8181/repository/android/"
+def ARTIFACT_ID = 'arouter-compiler'
+def GROUP_ID = 'com.alibaba'
+
+//打包源码
+task sourcesJar2(type: Jar, dependsOn: classes) {
+    classifier='sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar2
+}
+
+uploadArchives {
+    configuration = configurations.archives
+    repositories {
+        mavenDeployer {
+            repository(url: nexusRepositoryUrl) {
+                authentication(userName: username, password: pwd)
+            }
+            pom.project {
+                version project.arouter_compiler_version
+                artifactId ARTIFACT_ID
+                groupId GROUP_ID
+                packaging 'jar'
+            }
+        }
+    }
+}
