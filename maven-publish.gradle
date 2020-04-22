@@ -7,9 +7,20 @@ def nexusRepositoryUrl = "http://localhost:8181/repository/android/"
 def ARTIFACT_ID = 'arouter-compiler-androidannotations'
 def GROUP_ID = 'com.alibaba'
 
+jar {
+    manifest {
+        attributes "Manifest-Version": "1.0"
+//        attributes "Base-Version": "1.7.14"
+//        attributes "Archiver-Version": "Plexus Archiver"
+//        attributes "Created-By": "xcc"
+//        attributes "Built-By": "xcc"
+        attributes "Build-Jdk": System.getProperty("java.version")
+    }
+}
+
 //打包源码
 task sourcesJar2(type: Jar, dependsOn: classes) {
-    classifier='sources'
+    classifier = 'sources'
     from sourceSets.main.allSource
 }
 
